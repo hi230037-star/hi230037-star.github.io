@@ -1,0 +1,186 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  margin: 0;
+  padding: 20px;
+  color: #222;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+h1,
+h2 {
+  margin-bottom: 12px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+input,
+select,
+textarea,
+button {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 42px;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: #0d6efd;
+  color: #fff;
+  font-weight: bold;
+}
+
+button:hover {
+  opacity: 0.92;
+}
+
+.button-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.button-row button {
+  width: auto;
+  min-width: 140px;
+  padding: 10px 16px;
+}
+
+.secondary {
+  background: #198754;
+}
+
+.danger {
+  background: #dc3545;
+}
+
+.gray {
+  background: #6c757d;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.summary-box {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.summary-box .label {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.summary-box .value {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+  background: #fff;
+}
+
+th,
+td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 12px 10px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+th {
+  background: #f8f9fa;
+}
+
+.notes-cell {
+  text-align: left;
+  max-width: 260px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.empty {
+  text-align: center;
+  color: #777;
+  padding: 18px 0 4px;
+}
+
+.rate-good {
+  color: #198754;
+  font-weight: bold;
+}
+
+.rate-normal {
+  color: #fd7e14;
+  font-weight: bold;
+}
+
+.rate-low {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.footer-note {
+  font-size: 13px;
+  color: #666;
+  margin-top: 10px;
+}
+
+.notes-area {
+  margin-top: 12px;
+}
+
+.table-actions {
+  margin-bottom: 14px;
+}
+
+@media (max-width: 640px) {
+  body {
+    padding: 12px;
+  }
+}

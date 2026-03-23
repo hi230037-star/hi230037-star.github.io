@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>弓道 記録管理アプリ</title>
+  <link rel="stylesheet" href="stylesheet.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>弓道 記録管理アプリ</h1>
+
+    <div class="card">
+      <h2>記録を追加</h2>
+      <div class="grid">
+        <div>
+          <label for="practiceDate">日付</label>
+          <input type="date" id="practiceDate" />
+        </div>
+
+        <div>
+          <label for="place">場所</label>
+          <input type="text" id="place" placeholder="例：大学弓道場" />
+        </div>
+
+        <div>
+          <label for="style">種別</label>
+          <select id="style">
+            <option value="近的">近的</option>
+            <option value="遠的">遠的</option>
+            <option value="巻藁">巻藁</option>
+            <option value="審査練習">審査練習</option>
+            <option value="試合">試合</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="arrows">射数</label>
+          <input type="number" id="arrows" min="1" placeholder="例：20" />
+        </div>
+
+        <div>
+          <label for="hits">的中数</label>
+          <input type="number" id="hits" min="0" placeholder="例：12" />
+        </div>
+      </div>
+
+      <div class="notes-area">
+        <label for="notes">メモ</label>
+        <textarea id="notes" placeholder="例：離れが早い、会を意識、押し手が弱い など"></textarea>
+      </div>
+
+      <div class="button-row">
+        <button onclick="addRecord()">記録を保存</button>
+        <button class="gray" onclick="resetForm()">入力をリセット</button>
+      </div>
+      <p class="footer-note">※ データはこのブラウザ内に保存されます。</p>
+    </div>
+
+    <div class="card">
+      <h2>通算サマリー</h2>
+      <div class="summary-grid">
+        <div class="summary-box">
+          <div class="label">記録件数</div>
+          <div class="value" id="totalSessions">0</div>
+        </div>
+        <div class="summary-box">
+          <div class="label">合計射数</div>
+          <div class="value" id="totalArrows">0</div>
+        </div>
+        <div class="summary-box">
+          <div class="label">合計的中数</div>
+          <div class="value" id="totalHits">0</div>
+        </div>
+        <div class="summary-box">
+          <div class="label">通算的中率</div>
+          <div class="value" id="overallRate">0.0%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>過去の記録</h2>
+      <div class="button-row table-actions">
+        <button class="secondary" onclick="downloadCSV()">CSVをダウンロード</button>
+        <button class="danger" onclick="deleteAllRecords()">全記録を削除</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>日付</th>
+              <th>場所</th>
+              <th>種別</th>
+              <th>射数</th>
+              <th>的中数</th>
+              <th>的中率</th>
+              <th>メモ</th>
+              <th>削除</th>
+            </tr>
+          </thead>
+          <tbody id="recordTableBody"></tbody>
+        </table>
+      </div>
+      <p id="emptyMessage" class="empty">まだ記録がありません。</p>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "kyudoRecords";
+
+    let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+    function saveRecords() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    }
+
+    function getRate(arrows, hits) {
+      if (!arrows || arrows <= 0) return 0;
+      return (hits / arrows) * 100;
+    }
+
+    function getRateClass(rate) {
+      if (rate >= 60) return "rate-good";
+      if (rate >= 30) return "rate-normal";
+      return "rate-low";
+    }
+
+    function formatRate(rate) {
+      return rate.toFixed(1) + "%";
+    }
+
+    function addRecord() {
+      const practiceDate = document.getElementById("practiceDate").value;
+      const place = document.getElementById("place").value.trim();
+      const style = document.getElementById("style").value;
+      const arrows = Number(document.getElementById("arrows").value);
+      const hits = Number(document.getElementById("hits").value);
+      const notes = document.getElementById("notes").value.trim();
+
+      if (!practiceDate) {
+        alert("日付を入力してください。");
+        return;
+      }
+
+      if (!arrows || arrows <= 0) {
+        alert("射数は1以上で入力してください。");
+        return;
+      }
+
+      if (hits < 0) {
+        alert("的中数は0以上で入力してください。");
+        return;
+      }
+
+      if (hits > arrows) {
+        alert("的中数は射数を超えられません。");
+        return;
+      }
+
+      const record = {
+        id: Date.now(),
+        practiceDate,
+        place,
+        style,
+        arrows,
+        hits,
+        rate: getRate(arrows, hits),
+        notes
+      };
+
+      records.push(record);
+      records.sort((a, b) => new Date(b.practiceDate) - new Date(a.practiceDate));
+
+      saveRecords();
+      renderRecords();
+      updateSummary();
+      resetForm();
+    }
+
+    function resetForm() {
+      document.getElementById("practiceDate").value = "";
+      document.getElementById("place").value = "";
+      document.getElementById("style").value = "近的";
+      document.getElementById("arrows").value = "";
+      document.getElementById("hits").value = "";
+      document.getElementById("notes").value = "";
+    }
+
+    function deleteRecord(id) {
+      const confirmed = confirm("この記録を削除しますか？");
+      if (!confirmed) return;
+
+      records = records.filter(record => record.id !== id);
+      saveRecords();
+      renderRecords();
+      updateSummary();
+    }
+
+    function deleteAllRecords() {
+      if (records.length === 0) {
+        alert("削除する記録がありません。");
+        return;
+      }
+
+      const confirmed = confirm("すべての記録を削除します。よろしいですか？");
+      if (!confirmed) return;
+
+      records = [];
+      saveRecords();
+      renderRecords();
+      updateSummary();
+    }
+
+    function renderRecords() {
+      const tbody = document.getElementById("recordTableBody");
+      const emptyMessage = document.getElementById("emptyMessage");
+      tbody.innerHTML = "";
+
+      if (records.length === 0) {
+        emptyMessage.style.display = "block";
+        return;
+      }
+
+      emptyMessage.style.display = "none";
+
+      records.forEach(record => {
+        const tr = document.createElement("tr");
+        const rateClass = getRateClass(record.rate);
+
+        tr.innerHTML = `
+          <td>${record.practiceDate}</td>
+          <td>${escapeHtml(record.place)}</td>
+          <td>${escapeHtml(record.style)}</td>
+          <td>${record.arrows}</td>
+          <td>${record.hits}</td>
+          <td class="${rateClass}">${formatRate(record.rate)}</td>
+          <td class="notes-cell">${escapeHtml(record.notes)}</td>
+          <td><button class="danger" onclick="deleteRecord(${record.id})">削除</button></td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function updateSummary() {
+      const totalSessions = records.length;
+      const totalArrows = records.reduce((sum, record) => sum + record.arrows, 0);
+      const totalHits = records.reduce((sum, record) => sum + record.hits, 0);
+      const overallRate = totalArrows > 0 ? (totalHits / totalArrows) * 100 : 0;
+
+      document.getElementById("totalSessions").textContent = totalSessions;
+      document.getElementById("totalArrows").textContent = totalArrows;
+      document.getElementById("totalHits").textContent = totalHits;
+      document.getElementById("overallRate").textContent = formatRate(overallRate);
+    }
+
+    function downloadCSV() {
+      if (records.length === 0) {
+        alert("ダウンロードする記録がありません。");
+        return;
+      }
+
+      const header = ["日付", "場所", "種別", "射数", "的中数", "的中率", "メモ"];
+      const rows = records.map(record => [
+        record.practiceDate,
+        record.place,
+        record.style,
+        record.arrows,
+        record.hits,
+        formatRate(record.rate),
+        record.notes.replace(/\n/g, " ")
+      ]);
+
+      const csvContent = [header, ...rows]
+        .map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(","))
+        .join("\n");
+
+      const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+      const blob = new Blob([bom, csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "kyudo_records.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function escapeHtml(str) {
+      if (str == null) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    renderRecords();
+    updateSummary();
+  </script>
+</body>
+</html>
